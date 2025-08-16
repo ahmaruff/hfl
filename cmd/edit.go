@@ -1,15 +1,20 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
+	"os"
+	"os/exec"
+	"regexp"
+	"runtime"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/ahmaruff/hfl/internal/config"
 	"github.com/ahmaruff/hfl/internal/parser"
 	"github.com/ahmaruff/hfl/internal/writer"
 	"github.com/spf13/cobra"
-	"os"
-	"os/exec"
-	"runtime"
-	"time"
 )
 
 var editCmd = &cobra.Command{
@@ -23,7 +28,12 @@ func runEdit(cmd *cobra.Command, args []string) {
 	// Determine date
 	var date string
 	if len(args) > 0 {
-		date = args[0] // TODO: Validate YYYY-MM-DD format
+		parsedDate, err := parseDate(args[0])
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		date = parsedDate
 	} else {
 		date = time.Now().Format("2006-01-02") // Today
 	}
@@ -32,7 +42,52 @@ func runEdit(cmd *cobra.Command, args []string) {
 	ensureEntryExists(date)
 
 	// Open editor
-	openEditor("hfl.md")
+	openEditor("hfl.md", date)
+
+	// Post-edit validation
+	validateAfterEdit()
+}
+
+func validateDate(date string) error {
+	// Check format with regex
+	re := regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
+	if !re.MatchString(date) {
+		return fmt.Errorf("invalid date format: %s (expected YYYY-MM-DD)", date)
+	}
+
+	// Parse to check if it's a valid date
+	_, err := time.Parse("2006-01-02", date)
+	if err != nil {
+		return fmt.Errorf("invalid date: %s", date)
+	}
+
+	return nil
+}
+
+func validateAfterEdit() {
+	fmt.Println("Validating changes...")
+	journal, warnings, err := parser.ParseFile("hfl.md")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing file: %v\n", err)
+		return
+	}
+
+	if len(warnings) > 0 {
+		fmt.Println("Warnings found:")
+		for _, warning := range warnings {
+			fmt.Println("  " + warning)
+		}
+		fmt.Println()
+	}
+
+	// Auto-format always
+	fmt.Println("Formatting to canonical style...")
+	err = writer.WriteFile("hfl.md", journal)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error formatting file: %v\n", err)
+	} else {
+		fmt.Printf("File is valid. Found %d entries, formatted successfully.\n", len(journal.Entries))
+	}
 }
 
 func ensureEntryExists(date string) {
@@ -69,7 +124,67 @@ func ensureEntryExists(date string) {
 	}
 }
 
-func openEditor(filename string) {
+func parseDate(dateStr string) (string, error) {
+	dateStr = strings.TrimSpace(strings.ToLower(dateStr))
+	now := time.Now()
+
+	switch dateStr {
+	case "today":
+		return now.Format("2006-01-02"), nil
+	case "yesterday":
+		return now.AddDate(0, 0, -1).Format("2006-01-02"), nil
+	case "tomorrow":
+		return now.AddDate(0, 0, 1).Format("2006-01-02"), nil
+	}
+
+	// Handle n+X or n-X format
+	if strings.HasPrefix(dateStr, "n+") || strings.HasPrefix(dateStr, "n-") {
+		offsetStr := dateStr[1:] // Remove 'n', keep +X or -X
+		days, err := strconv.Atoi(offsetStr)
+		if err == nil {
+			return now.AddDate(0, 0, days).Format("2006-01-02"), nil
+		}
+	}
+
+	// Handle weekdays: monday, tuesday, etc.
+	if weekday := parseWeekday(dateStr); weekday >= 0 {
+		daysUntil := int(weekday - now.Weekday())
+		if daysUntil <= 0 {
+			daysUntil += 7 // Next week
+		}
+		return now.AddDate(0, 0, daysUntil).Format("2006-01-02"), nil
+	}
+
+	// Try parsing as YYYY-MM-DD
+	if err := validateDate(dateStr); err == nil {
+		return dateStr, nil
+	}
+
+	return "", fmt.Errorf("unable to parse date: %s", dateStr)
+}
+
+func parseWeekday(day string) time.Weekday {
+	switch day {
+	case "sunday", "sun":
+		return time.Sunday
+	case "monday", "mon":
+		return time.Monday
+	case "tuesday", "tue", "tues":
+		return time.Tuesday
+	case "wednesday", "wed":
+		return time.Wednesday
+	case "thursday", "thu", "thurs":
+		return time.Thursday
+	case "friday", "fri":
+		return time.Friday
+	case "saturday", "sat":
+		return time.Saturday
+	default:
+		return -1
+	}
+}
+
+func openEditor(filename string, targetDate string) {
 	cfg, err := config.Load()
 	if err != nil {
 		// Fallback if config fails using empty config
@@ -78,12 +193,11 @@ func openEditor(filename string) {
 	}
 
 	editor := cfg.GetEditor()
-	var cmd *exec.Cmd
-	if runtime.GOOS == "windows" {
-		cmd = exec.Command("cmd", "/c", editor, filename)
-	} else {
-		cmd = exec.Command("sh", "-c", editor+" "+filename)
-	}
+
+	// Find line number of target entry
+	lineNum := findEntryLine(filename, targetDate)
+
+	cmd := buildEditorCommand(editor, filename, lineNum)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
@@ -93,6 +207,81 @@ func openEditor(filename string) {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error opening editor: %v\n", err)
 		os.Exit(1)
+	}
+}
+
+func findEntryLine(filename, targetDate string) int {
+	file, err := os.Open(filename)
+	if err != nil {
+		return 0 // File doesn't exist yet
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	lineNum := 0
+
+	for scanner.Scan() {
+		lineNum++
+		line := scanner.Text()
+
+		if strings.HasPrefix(line, "# "+targetDate) {
+			return lineNum + 1 // Position cursor at the body, not the heading
+		}
+	}
+
+	return 0 // Entry not found
+}
+
+func buildEditorCommand(editor, filename string, lineNum int) *exec.Cmd {
+	switch {
+	case strings.Contains(editor, "code") || strings.Contains(editor, "codium"):
+		// VS Code: code --goto file:line:column
+		if lineNum > 0 {
+			return exec.Command(editor, "--goto", fmt.Sprintf("%s:%d:1", filename, lineNum))
+		}
+		return exec.Command(editor, filename)
+
+	case strings.Contains(editor, "vim") || strings.Contains(editor, "nvim"):
+		// Vim: vim +line file
+		if lineNum > 0 {
+			return exec.Command(editor, fmt.Sprintf("+%d", lineNum), filename)
+		}
+		return exec.Command(editor, filename)
+
+	case strings.Contains(editor, "nano"):
+		// Nano: nano +line file
+		if lineNum > 0 {
+			return exec.Command(editor, fmt.Sprintf("+%d", lineNum), filename)
+		}
+		return exec.Command(editor, filename)
+
+	case strings.Contains(editor, "emacs"):
+		// Emacs: emacs +line file
+		if lineNum > 0 {
+			return exec.Command(editor, fmt.Sprintf("+%d", lineNum), filename)
+		}
+		return exec.Command(editor, filename)
+
+	case strings.Contains(editor, "subl") || strings.Contains(editor, "sublime"):
+		// Sublime Text: subl file:line
+		if lineNum > 0 {
+			return exec.Command(editor, fmt.Sprintf("%s:%d", filename, lineNum))
+		}
+		return exec.Command(editor, filename)
+
+	case strings.Contains(editor, "atom"):
+		// Atom: atom file:line
+		if lineNum > 0 {
+			return exec.Command(editor, fmt.Sprintf("%s:%d", filename, lineNum))
+		}
+		return exec.Command(editor, filename)
+
+	default:
+		// Fallback - just open the file
+		if runtime.GOOS == "windows" {
+			return exec.Command("cmd", "/c", editor, filename)
+		}
+		return exec.Command("sh", "-c", editor+" "+filename)
 	}
 }
 

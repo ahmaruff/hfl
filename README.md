@@ -1,9 +1,10 @@
 # HFL (Homework-for-Life)
-A simple, deterministic journaling tool that keeps your daily entries in a single Markdown file.
+A simple, deterministic journaling tool that captures your daily life in a single Markdown file.
 
 ## What is HFL?
 
-HFL manages your journal in one human-readable `hfl.md` file with a clean, predictable format:
+HFL helps you build a daily writing habit by keeping all entries in one plain-text file (hfl.md).
+Each entry is stored under a date heading in standard Markdown, making it easy to read, edit, and version-control:
 
 ```markdown
 # 2025-08-16
@@ -15,8 +16,18 @@ Made good progress on the parser implementation.
 Quiet weekend. Read a good book.
 ```
 
+No databases, no proprietary formats—just your thoughts in Markdown.
+
 ## Features
 
+- **One file, one journal** : Everything lives in hfl.md—simple to back up, sync, or put under Git.
+- **Plain Markdown** : Portable, future-proof, and readable in any editor or Markdown viewer.
+- **Deterministic format** : Entries follow a predictable structure, so they’re easy to parse, search, and extend.
+
+- **Offline-first** : Works without internet or setup. Just open your editor and write.
+
+Future-ready
+Extensible by design—planned features (like Notion sync) won’t break the core simplicity.
 - **Single file**: Everything in one `hfl.md` file
 - **Human-readable**: Standard Markdown format
 - **Deterministic**: Consistent formatting across tools
@@ -174,7 +185,6 @@ WARN duplicate date 2025-08-16 at line 9 (first seen at line 7); discarding dupl
 ## Upcoming Features
 
 - **Notion sync**: Two-way sync with Notion databases
-- **Better editor integration**: Cursor positioning for specific entries
 
 ## Technical Details
 

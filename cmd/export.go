@@ -8,6 +8,8 @@ import (
 	"os"
 )
 
+var outputFile string
+
 var exportCmd = &cobra.Command{
 	Use:   "export",
 	Short: "Export journal data",
@@ -32,13 +34,18 @@ func runExportJson(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	jsonData, err := export.ToJSON(journal)
+	filename := outputFile
+	if filename == "" {
+		filename = "hfl.json"
+	}
+
+	err = export.ToJSONFile(journal, filename)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error exporting JSON: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Println(string(jsonData))
+	fmt.Printf("Exported to %s\n", filename)
 }
 
 func runExportCsv(cmd *cobra.Command, args []string) {
@@ -47,18 +54,24 @@ func runExportCsv(cmd *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
+	filename := outputFile
+	if filename == "" {
+		filename = "hfl.csv"
+	}
 
-	csvData, err := export.ToCSV(journal)
-
+	err = export.ToCSVFile(journal, filename)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error exporting CSV: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Print(string(csvData))
+	fmt.Printf("Exported to %s\n", filename)
 }
 
 func init() {
+	// Add --output flag
+	exportCmd.PersistentFlags().StringVarP(&outputFile, "output", "o", "", "Output filename")
+
 	exportCmd.AddCommand(exportJsonCmd)
 	exportCmd.AddCommand(exportCsvCmd)
 	RootCmd.AddCommand(exportCmd)

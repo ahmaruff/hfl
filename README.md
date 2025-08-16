@@ -1,2 +1,167 @@
-# HFL - Homework For Life
-_A CLI tool for daily journaling_
+# HFL (Homework-for-Life)
+A simple, deterministic journaling tool that keeps your daily entries in a single Markdown file.
+
+## What is HFL?
+
+HFL manages your journal in one human-readable `hfl.md` file with a clean, predictable format:
+
+```markdown
+# 2025-08-16
+Had a productive day working on the new project.
+
+Made good progress on the parser implementation.
+
+# 2025-08-15
+Quiet weekend. Read a good book.
+```
+
+## Features
+
+- **Single file**: Everything in one `hfl.md` file
+- **Human-readable**: Standard Markdown format
+- **Deterministic**: Consistent formatting across tools
+- **Offline-first**: Works without internet
+- **Extensible**: Built for future Notion sync (coming soon)
+
+## Installation
+
+### From Source
+
+```bash
+git clone https://github.com/ahmaruff/hfl.git
+cd hfl
+go build -o hfl
+```
+
+### Direct Download
+
+Download the latest release from the [releases page](https://github.com/ahmaruff/hfl/releases).
+
+## Usage
+
+### Create or edit today's entry
+```bash
+hfl edit
+```
+
+### Edit a specific date
+```bash
+hfl edit 2025-08-20
+```
+
+### Check file for formatting issues
+```bash
+hfl check
+```
+
+### Export your journal
+```bash
+# Export as JSON
+hfl export json
+
+# Export as CSV (tab-separated)
+hfl export csv
+```
+
+## File Format
+
+HFL uses a strict but simple format:
+
+- **Headings**: Must be `# YYYY-MM-DD` (H1 level only)
+- **Body**: Free-form Markdown content
+- **Order**: Entries sorted by date (newest first)
+- **Spacing**: Exactly one blank line between entries
+
+### Valid Example
+```markdown
+# 2025-08-16
+First paragraph.
+
+Second paragraph with *markdown*.
+
+# 2025-08-15
+Single line entry.
+```
+
+### Invalid Examples
+```markdown
+## 2025-08-16  ❌ Wrong heading level
+# Aug 16, 2025  ❌ Wrong date format
+```
+
+## Editor Configuration
+
+HFL respects your editor preferences in this order:
+
+1. `HFL_EDITOR` environment variable
+2. `EDITOR` environment variable  
+3. Default: `notepad` (Windows) or `vi` (Unix)
+
+```bash
+# Set your preferred editor
+export HFL_EDITOR="code"  # VS Code
+export HFL_EDITOR="vim"   # Vim
+export HFL_EDITOR="nano"  # Nano
+```
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `hfl edit [DATE]` | Create/edit journal entry |
+| `hfl check` | Validate hfl.md format |
+| `hfl export json` | Export as JSON |
+| `hfl export csv` | Export as tab-separated CSV |
+
+## Exit Codes
+
+- `0`: Success
+- `1`: Error (file not found, format error)
+- `2`: Warnings found (check command)
+
+## Validation & Warnings
+
+HFL validates your entries and provides helpful warnings:
+
+```bash
+$ hfl check
+WARN invalid heading at line 5: "# Aug 16, 2025" (expected "# YYYY-MM-DD")
+WARN duplicate date 2025-08-16 at line 9 (first seen at line 7); discarding duplicate
+```
+
+## Upcoming Features
+
+- **Configuration system**: `.hfl/config.json` for custom settings
+- **Notion sync**: Two-way sync with Notion databases
+- **Better editor integration**: Cursor positioning for specific entries
+
+## Technical Details
+
+For the complete technical specification, see [SPEC.md](SPEC.md).
+
+Key points:
+- UTF-8 encoding without BOM
+- LF line endings (`\n`)
+- Deterministic parsing and formatting
+- Tolerant reader, strict writer
+
+## Contributing
+
+1. Check the [specification](SPEC.md) for implementation details
+2. Fork the repository
+3. Create a feature branch
+4. Add tests for new functionality
+5. Submit a pull request
+
+## License
+
+MIT License - see [LICENSE](LICENSE) file for details.
+
+## Why HFL?
+
+- **Simple**: One file, standard Markdown
+- **Reliable**: Deterministic format, extensive validation
+- **Future-proof**: Designed for tool interoperability
+- **Yours**: Local files, no vendor lock-in
+
+Start journaling today with `hfl edit`!

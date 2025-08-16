@@ -58,9 +58,25 @@ hfl check
 ```bash
 # Export as JSON
 hfl export json
+hfl export json -o backup.json
 
 # Export as CSV (tab-separated)
 hfl export csv
+hfl export csv -o data.tsv
+```
+
+### Configure HFL
+```bash
+# Set your preferred editor
+hfl config set editor "code"
+hfl config set editor "nvim" --global
+
+# View current configuration
+hfl config get
+hfl config get editor
+
+# List available configuration keys
+hfl config list
 ```
 
 ## File Format
@@ -91,18 +107,32 @@ Single line entry.
 
 ## Editor Configuration
 
-HFL respects your editor preferences in this order:
+HFL supports flexible configuration through multiple methods:
 
-1. `HFL_EDITOR` environment variable
-2. `EDITOR` environment variable  
-3. Default: `notepad` (Windows) or `vi` (Unix)
+### Configuration Sources (in order of precedence)
+1. **Environment variables** (highest priority)
+2. **Local config** (`./.hfl/config.json`)
+3. **Global config** (`~/.hfl/config.json`)
+4. **Built-in defaults** (lowest priority)
 
+### Editor Configuration
 ```bash
-# Set your preferred editor
+# Method 1: Using config command (recommended)
+hfl config set editor "code"           # Local config
+hfl config set editor "vim" --global   # Global config
+
+# Method 2: Environment variables
 export HFL_EDITOR="code"  # VS Code
 export HFL_EDITOR="vim"   # Vim
 export HFL_EDITOR="nano"  # Nano
+export EDITOR="emacs"     # System default
 ```
+
+### Available Configuration Keys
+- `editor` - Your preferred text editor
+- `conflict_strategy` - Sync conflict resolution (remote, local, merge)
+- `notion.api_token` - Notion API token for sync (coming soon)
+- `notion.database_id` - Notion database ID for sync (coming soon)
 
 ## Commands
 
@@ -110,8 +140,11 @@ export HFL_EDITOR="nano"  # Nano
 |---------|-------------|
 | `hfl edit [DATE]` | Create/edit journal entry |
 | `hfl check` | Validate hfl.md format |
-| `hfl export json` | Export as JSON |
-| `hfl export csv` | Export as tab-separated CSV |
+| `hfl export json [-o FILE]` | Export as JSON |
+| `hfl export csv [-o FILE]` | Export as tab-separated CSV |
+| `hfl config set <key> <value>` | Set configuration value |
+| `hfl config get [key]` | Get configuration value(s) |
+| `hfl config list` | List available configuration keys |
 
 ## Exit Codes
 
@@ -131,7 +164,6 @@ WARN duplicate date 2025-08-16 at line 9 (first seen at line 7); discarding dupl
 
 ## Upcoming Features
 
-- **Configuration system**: `.hfl/config.json` for custom settings
 - **Notion sync**: Two-way sync with Notion databases
 - **Better editor integration**: Cursor positioning for specific entries
 

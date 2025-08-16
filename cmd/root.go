@@ -7,9 +7,10 @@ import (
 )
 
 var RootCmd = &cobra.Command{
-	Use:   "hfl",
-	Short: "Homework for Life - A simple journaling tool",
-	Long:  "HFL manages your daily journal in a single markdown file with optional Notion sync.",
+	Use:     "hfl",
+	Version: "0.2.0",
+	Short:   "Homework for Life - A simple journaling tool",
+	Long:    "HFL manages your daily journal in a single markdown file with optional Notion sync.",
 }
 
 func Execute() {

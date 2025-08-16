@@ -46,8 +46,17 @@ hfl edit
 
 ### Edit a specific date
 ```bash
-hfl edit 2025-08-20
+hfl edit                   # Today
+hfl edit yesterday         # Yesterday
+hfl edit tomorrow          # Tomorrow
+hfl edit n+0               # Today
+hfl edit n+1               # Tomorrow  
+hfl edit n-1               # Yesterday
+hfl edit n-30              # 30 days ago
+hfl edit monday            # Next Monday
+hfl edit 2025-08-20        # Specific date
 ```
+
 
 ### Check file for formatting issues
 ```bash

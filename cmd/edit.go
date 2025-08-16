@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -27,11 +28,12 @@ func runEdit(cmd *cobra.Command, args []string) {
 	// Determine date
 	var date string
 	if len(args) > 0 {
-		date = args[0]
-		if err := validateDate(date); err != nil {
+		parsedDate, err := parseDate(args[0])
+		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 			os.Exit(1)
 		}
+		date = parsedDate
 	} else {
 		date = time.Now().Format("2006-01-02") // Today
 	}
@@ -41,6 +43,9 @@ func runEdit(cmd *cobra.Command, args []string) {
 
 	// Open editor
 	openEditor("hfl.md", date)
+
+	// Post-edit validation
+	validateAfterEdit()
 }
 
 func validateDate(date string) error {
@@ -57,6 +62,32 @@ func validateDate(date string) error {
 	}
 
 	return nil
+}
+
+func validateAfterEdit() {
+	fmt.Println("Validating changes...")
+	journal, warnings, err := parser.ParseFile("hfl.md")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error parsing file: %v\n", err)
+		return
+	}
+
+	if len(warnings) > 0 {
+		fmt.Println("Warnings found:")
+		for _, warning := range warnings {
+			fmt.Println("  " + warning)
+		}
+		fmt.Println()
+	}
+
+	// Auto-format always
+	fmt.Println("Formatting to canonical style...")
+	err = writer.WriteFile("hfl.md", journal)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error formatting file: %v\n", err)
+	} else {
+		fmt.Printf("File is valid. Found %d entries, formatted successfully.\n", len(journal.Entries))
+	}
 }
 
 func ensureEntryExists(date string) {
@@ -90,6 +121,66 @@ func ensureEntryExists(date string) {
 			fmt.Fprintf(os.Stderr, "Error creating entry: %v\n", err)
 			os.Exit(1)
 		}
+	}
+}
+
+func parseDate(dateStr string) (string, error) {
+	dateStr = strings.TrimSpace(strings.ToLower(dateStr))
+	now := time.Now()
+
+	switch dateStr {
+	case "today":
+		return now.Format("2006-01-02"), nil
+	case "yesterday":
+		return now.AddDate(0, 0, -1).Format("2006-01-02"), nil
+	case "tomorrow":
+		return now.AddDate(0, 0, 1).Format("2006-01-02"), nil
+	}
+
+	// Handle n+X or n-X format
+	if strings.HasPrefix(dateStr, "n+") || strings.HasPrefix(dateStr, "n-") {
+		offsetStr := dateStr[1:] // Remove 'n', keep +X or -X
+		days, err := strconv.Atoi(offsetStr)
+		if err == nil {
+			return now.AddDate(0, 0, days).Format("2006-01-02"), nil
+		}
+	}
+
+	// Handle weekdays: monday, tuesday, etc.
+	if weekday := parseWeekday(dateStr); weekday >= 0 {
+		daysUntil := int(weekday - now.Weekday())
+		if daysUntil <= 0 {
+			daysUntil += 7 // Next week
+		}
+		return now.AddDate(0, 0, daysUntil).Format("2006-01-02"), nil
+	}
+
+	// Try parsing as YYYY-MM-DD
+	if err := validateDate(dateStr); err == nil {
+		return dateStr, nil
+	}
+
+	return "", fmt.Errorf("unable to parse date: %s", dateStr)
+}
+
+func parseWeekday(day string) time.Weekday {
+	switch day {
+	case "sunday", "sun":
+		return time.Sunday
+	case "monday", "mon":
+		return time.Monday
+	case "tuesday", "tue", "tues":
+		return time.Tuesday
+	case "wednesday", "wed":
+		return time.Wednesday
+	case "thursday", "thu", "thurs":
+		return time.Thursday
+	case "friday", "fri":
+		return time.Friday
+	case "saturday", "sat":
+		return time.Saturday
+	default:
+		return -1
 	}
 }
 

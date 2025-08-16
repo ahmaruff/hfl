@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/ahmaruff/hfl/internal/config"
 	"github.com/ahmaruff/hfl/internal/parser"
 	"github.com/ahmaruff/hfl/internal/writer"
 	"github.com/spf13/cobra"
@@ -69,8 +70,14 @@ func ensureEntryExists(date string) {
 }
 
 func openEditor(filename string) {
-	editor := getEditor()
+	cfg, err := config.Load()
+	if err != nil {
+		// Fallback if config fails using empty config
+		fmt.Fprintf(os.Stderr, "Warning: failed to load config: %v\n", err)
+		cfg = &config.Config{}
+	}
 
+	editor := cfg.GetEditor()
 	var cmd *exec.Cmd
 	if runtime.GOOS == "windows" {
 		cmd = exec.Command("cmd", "/c", editor, filename)
@@ -82,29 +89,11 @@ func openEditor(filename string) {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	err := cmd.Run()
+	err = cmd.Run()
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error opening editor: %v\n", err)
 		os.Exit(1)
 	}
-}
-
-func getEditor() string {
-	// TODO: Implement config resolution later
-	// For now, use env vars
-	if editor := os.Getenv("HFL_EDITOR"); editor != "" {
-		return editor
-	}
-	if editor := os.Getenv("EDITOR"); editor != "" {
-		return editor
-	}
-
-	// Default based on OS
-	if runtime.GOOS == "windows" {
-		return "notepad"
-	}
-
-	return "vi"
 }
 
 func init() {

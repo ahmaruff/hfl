@@ -61,7 +61,10 @@ func ParseFile(filename string) (*Journal, []string, error) {
 					bodyLines = bodyLines[:len(bodyLines)-1]
 				}
 
-				currentEntry.Body = strings.Join(bodyLines, "\n")
+				bodyContent := strings.Join(bodyLines, "\n")
+				bodyContent = strings.TrimPrefix(bodyContent, "\n")
+				currentEntry.Body = bodyContent
+
 				journal.Entries = append(journal.Entries, *currentEntry)
 			}
 
@@ -86,7 +89,10 @@ func ParseFile(filename string) (*Journal, []string, error) {
 			bodyLines = bodyLines[:len(bodyLines)-1]
 		}
 
-		currentEntry.Body = strings.Join(bodyLines, "\n")
+		bodyContent := strings.Join(bodyLines, "\n")
+		bodyContent = strings.TrimPrefix(bodyContent, "\n")
+		currentEntry.Body = bodyContent
+
 		journal.Entries = append(journal.Entries, *currentEntry)
 	}
 

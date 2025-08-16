@@ -1,8 +1,8 @@
 package parser
 
 type Entry struct {
-	Date string
-	Body string
+	Date string `json:date`
+	Body string `json:body`
 }
 
 type Journal struct {

@@ -13,6 +13,7 @@ import (
 
 	"github.com/ahmaruff/hfl/internal/config"
 	"github.com/ahmaruff/hfl/internal/parser"
+	"github.com/ahmaruff/hfl/internal/state"
 	"github.com/ahmaruff/hfl/internal/writer"
 	"github.com/spf13/cobra"
 )
@@ -80,13 +81,32 @@ func validateAfterEdit() {
 		fmt.Println()
 	}
 
-	// Auto-format always
+	// Auto-format
 	fmt.Println("Formatting to canonical style...")
 	err = writer.WriteFile("hfl.md", journal)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error formatting file: %v\n", err)
-	} else {
-		fmt.Printf("File is valid. Found %d entries, formatted successfully.\n", len(journal.Entries))
+		return
+	}
+
+	fmt.Printf("File is valid. Found %d entries, formatted successfully.\n", len(journal.Entries))
+}
+
+func updateStateAfterEdit(journal *parser.Journal) {
+	state, err := state.Load()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: failed to load state: %v\n", err)
+		return
+	}
+
+	// Update state for all entries
+	for _, entry := range journal.Entries {
+		state.UpdateEntry(entry.Date, entry.Body)
+	}
+
+	// Save state
+	if err := state.Save(); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: failed to save state: %v\n", err)
 	}
 }
 

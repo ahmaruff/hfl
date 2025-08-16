@@ -97,6 +97,9 @@ hfl config get editor
 
 # List available configuration keys
 hfl config list
+
+# Show sync status of journal entries
+hfl status
 ```
 
 ## File Format
@@ -165,6 +168,7 @@ export EDITOR="emacs"     # System default
 | `hfl config set <key> <value>` | Set configuration value |
 | `hfl config get [key]` | Get configuration value(s) |
 | `hfl config list` | List available configuration keys |
+| `hfl status` | Show sync status of entries |
 
 ## Exit Codes
 

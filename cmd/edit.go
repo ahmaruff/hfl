@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -26,7 +27,11 @@ func runEdit(cmd *cobra.Command, args []string) {
 	// Determine date
 	var date string
 	if len(args) > 0 {
-		date = args[0] // TODO: Validate YYYY-MM-DD format
+		date = args[0]
+		if err := validateDate(date); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
 	} else {
 		date = time.Now().Format("2006-01-02") // Today
 	}
@@ -36,6 +41,22 @@ func runEdit(cmd *cobra.Command, args []string) {
 
 	// Open editor
 	openEditor("hfl.md", date)
+}
+
+func validateDate(date string) error {
+	// Check format with regex
+	re := regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
+	if !re.MatchString(date) {
+		return fmt.Errorf("invalid date format: %s (expected YYYY-MM-DD)", date)
+	}
+
+	// Parse to check if it's a valid date
+	_, err := time.Parse("2006-01-02", date)
+	if err != nil {
+		return fmt.Errorf("invalid date: %s", date)
+	}
+
+	return nil
 }
 
 func ensureEntryExists(date string) {

@@ -205,7 +205,7 @@ Leap‑day validity MAY be enforced; if enforced and invalid → treat as Invali
   "type": "object",
   "properties": {
     "editor": { "type": "string" },
-    "conflictStrategy": {
+    "conflict_strategy": {
       "type": "string",
       "enum": ["remote", "local", "merge"],
       "default": "remote"

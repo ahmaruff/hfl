@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"github.com/ahmaruff/hfl/cmd"
 )
 
 func main() {
-	fmt.Println("Homework For Life CLI - Coming Soon!")
+	cmd.Execute()
 }

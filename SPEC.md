@@ -217,7 +217,7 @@ Leap‑day validity MAY be enforced; if enforced and invalid → treat as Invali
         "database_id": { "type": "string" }
       },
       "required": [],
-      "additionalProperties": false
+      "additional_properties": false
     }
   },
   "additionalProperties": false
@@ -256,7 +256,7 @@ Tool‑managed metadata to support sync. No diagnostics/history.
     "last_synced": { "type": "string", "format": "date-time" },
     "entries": {
       "type": "object",
-      "additionalProperties": {
+      "additional_properties": {
         "type": "object",
         "properties": {
           "notion_id": { "type": ["string", "null"] },

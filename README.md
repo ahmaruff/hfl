@@ -100,6 +100,12 @@ hfl config list
 
 # Show sync status of journal entries
 hfl status
+
+# Sync to Notion
+hfl sync # sync pull & push
+hfl sync --push # Push edited hfl to notion
+hfl sync --pull # Pull hfl from notion
+hfl sync --dry-run # Check sync
 ```
 
 ## File Format
@@ -169,6 +175,11 @@ export EDITOR="emacs"     # System default
 | `hfl config get [key]` | Get configuration value(s) |
 | `hfl config list` | List available configuration keys |
 | `hfl status` | Show sync status of entries |
+| `hfl sync` | sync pull & push |
+| `hfl sync --push` | Push edited hfl to notion |
+| `hfl sync --pull` | Pull hfl from notion |
+| `hfl sync --dry-run` | Check sync |
+
 
 ## Exit Codes
 
@@ -185,10 +196,6 @@ $ hfl check
 WARN invalid heading at line 5: "# Aug 16, 2025" (expected "# YYYY-MM-DD")
 WARN duplicate date 2025-08-16 at line 9 (first seen at line 7); discarding duplicate
 ```
-
-## Upcoming Features
-
-- **Notion sync**: Two-way sync with Notion databases
 
 ## Technical Details
 

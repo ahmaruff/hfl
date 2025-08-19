@@ -50,12 +50,12 @@ Download the latest release from the [releases page](https://github.com/ahmaruff
 
 ## Usage
 
-### Create or edit today's entry
+### Open today’s journal entry for editing:
 ```bash
 hfl edit
 ```
 
-### Edit a specific date
+### Edit entries for specific dates:
 ```bash
 hfl edit                   # Today
 hfl edit yesterday         # Yesterday
@@ -68,11 +68,15 @@ hfl edit monday            # Next Monday
 hfl edit 2025-08-20        # Specific date
 ```
 
+> The edit command opens your configured editor. If no editor is set, it falls back to your system’s default.
 
-### Check file for formatting issues
+### Validate Journal Format
+Check `hfl.md` for formatting issues
 ```bash
 hfl check
 ```
+
+This ensures your journal file adheres to the expected structure and syntax.
 
 ### Export your journal
 ```bash
@@ -85,28 +89,47 @@ hfl export csv
 hfl export csv -o data.tsv
 ```
 
-### Configure HFL
+### Configuration
+Customize hfl behavior using the config command.
+
 ```bash
-# Set your preferred editor
+# Set editor (local)
 hfl config set editor "code"
+
+# Set editor globally
 hfl config set editor "nvim" --global
 
-# View current configuration
-hfl config get
-hfl config get editor
+# Configure Notion integration
+hfl config set notion.api_token YOUR_NOTION_TOKEN
+hfl config set notion.database_id YOUR_DATABASE_ID
 
-# List available configuration keys
+
+# View current configuration
+hfl config get              # Show all settings
+hfl config get editor       # Get specific key
+
+# Show all configurable keys
 hfl config list
 
 # Show sync status of journal entries
 hfl status
-
-# Sync to Notion
-hfl sync # sync pull & push
-hfl sync --push # Push edited hfl to notion
-hfl sync --pull # Pull hfl from notion
-hfl sync --dry-run # Check sync
 ```
+
+### Sync with Notion
+```bash
+hfl sync            # Perform both pull and push sync
+hfl sync --pull     # Pull latest entries from Notion
+hfl sync --push     # Push local changes to Notion
+hfl sync --dry-run  # Preview sync actions without applying
+```
+
+### Help
+```bash
+hfl help                    # Show general help
+hfl <command> help          # Get help for a specific command
+hfl edit help               # Example: help for 'edit'
+```
+
 
 ## File Format
 
@@ -167,18 +190,18 @@ export EDITOR="emacs"     # System default
 
 | Command | Description |
 |---------|-------------|
-| `hfl edit [DATE]` | Create/edit journal entry |
-| `hfl check` | Validate hfl.md format |
-| `hfl export json [-o FILE]` | Export as JSON |
-| `hfl export csv [-o FILE]` | Export as tab-separated CSV |
-| `hfl config set <key> <value>` | Set configuration value |
-| `hfl config get [key]` | Get configuration value(s) |
+| `hfl edit [DATE]` | Open journal entry for editing |
+| `hfl check` | Validate the format of `hfl.md` |
+| `hfl export json [-o FILE]` | Export journal as JSON |
+| `hfl export csv [-o FILE]` | Export journal as tab-separated CSV |
+| `hfl config set <key> <value>` | Set a configuration value (use `--global` for global settings) |
+| `hfl config get [key]` | Retrieve one or all config values |
 | `hfl config list` | List available configuration keys |
-| `hfl status` | Show sync status of entries |
-| `hfl sync` | sync pull & push |
-| `hfl sync --push` | Push edited hfl to notion |
-| `hfl sync --pull` | Pull hfl from notion |
-| `hfl sync --dry-run` | Check sync |
+| `hfl status` | Show sync status of journal entries (local vs Notion) |
+| `hfl sync` | Sync with Notion: pull remote changes and push local updates |
+| `hfl sync --push` | Push local entries to Notion |
+| `hfl sync --pull` | Pull entries from Notion to local |
+| `hfl sync --dry-run` | Preview sync changes without modifying data |
 
 
 ## Exit Codes

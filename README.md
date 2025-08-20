@@ -89,8 +89,9 @@ hfl export csv -o analytics.csv       # Data analysis
 **Travel journal** - Write offline, sync when connected  
 **Team updates** - Share via Notion, edit locally  
 
-## What's Coming?
+## what's coming?
 
+- 🔄 Conflict resolution
 - 🎨 Rich markdown formatting in Notion
 - 📊 Analytics and insights
 - 🔗 Integration with more platforms

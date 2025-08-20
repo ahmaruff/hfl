@@ -57,12 +57,12 @@ func (s *SyncService) ValidateAndSetupDatabase() error {
 	}
 
 	if len(missing) > 0 {
-		fmt.Printf("⚠️  Adding missing properties: %v\n", missing)
+		fmt.Printf("Adding missing properties: %v\n", missing)
 		if err := s.client.UpdateDatabase(s.databaseID, missing); err != nil {
 			return fmt.Errorf("failed to update database schema: %w", err)
 		}
 	} else {
-		fmt.Println("✅ Database schema is valid")
+		fmt.Println("Database schema is valid")
 	}
 
 	return nil
@@ -74,14 +74,10 @@ func (s *SyncService) SyncToNotion(journal *parser.Journal, state *state.State) 
 		entryState, exists := state.GetEntry(entry.Date)
 
 		if !exists || entryState.NotionID == "" {
-			// New entry or entry never synced to Notion - create in Notion
-			fmt.Printf("Creating new entry for %s...\n", entry.Date)
 			if err := s.createEntry(entry, state); err != nil {
 				return fmt.Errorf("failed to create entry %s: %w", entry.Date, err)
 			}
 		} else if state.HasChanged(entry.Date, entry.Body) {
-			// Modified entry - update in Notion
-			fmt.Printf("Updating entry for %s...\n", entry.Date)
 			if err := s.updateEntry(entry, entryState, state); err != nil {
 				return fmt.Errorf("failed to update entry %s: %w", entry.Date, err)
 			}
@@ -101,16 +97,13 @@ func (s *SyncService) SyncFromNotion(journal *parser.Journal, state *state.State
 		return fmt.Errorf("failed to query database: %w", err)
 	}
 
-	fmt.Printf("🔍 Found %d pages in Notion database\n", len(response.Results))
+	fmt.Printf("Found %d pages in Notion database\n", len(response.Results))
 
 	for _, page := range response.Results {
 		date := s.extractDate(page)
 		if date == "" {
-			fmt.Printf("⚠️  Skipping page with no valid date\n")
 			continue
 		}
-
-		fmt.Printf("🔍 Processing page for date: %s\n", date)
 
 		// Get content from page blocks only
 		content, err := s.getPageContent(page.ID)
@@ -119,20 +112,16 @@ func (s *SyncService) SyncFromNotion(journal *parser.Journal, state *state.State
 			continue
 		}
 
-		fmt.Printf("🔍 Extracted content length: %d\n", len(content))
-
 		// Check if we need to update local entry
 		entryState, exists := state.GetEntry(date)
 		if !exists || s.shouldUpdateLocal(page, entryState) {
-			fmt.Printf("Updating local entry for %s...\n", date)
 			if err := s.updateLocalEntry(journal, date, content, page, state); err != nil {
 				return fmt.Errorf("failed to update local entry %s: %w", date, err)
 			}
-		} else {
-			fmt.Printf("📋 Entry %s is up to date\n", date)
 		}
 	}
 
+	fmt.Printf("Sync from Notion done\n")
 	return nil
 }
 
@@ -195,20 +184,14 @@ func (s *SyncService) updateEntry(entry parser.Entry, entryState state.EntryStat
 
 // getPageContent: FIXED — baca semua blok dengan benar
 func (s *SyncService) getPageContent(pageID string) (string, error) {
-	fmt.Printf("🔍 Getting content for page ID: %s\n", pageID)
-
 	blocks, err := s.client.GetBlockChildren(pageID)
 	if err != nil {
 		return "", fmt.Errorf("failed to get block children: %w", err)
 	}
 
-	fmt.Printf("🔍 Found %d blocks in page\n", len(blocks.Results))
-
 	var content strings.Builder
 
 	for i, block := range blocks.Results {
-		fmt.Printf("🔍 Block %d: type=%s\n", i, block.Type)
-
 		var textObjects []TextObject
 
 		switch block.Type {
@@ -250,14 +233,13 @@ func (s *SyncService) getPageContent(pageID string) (string, error) {
 				}
 			}
 		default:
-			fmt.Printf("⚠️  Unsupported block type: %s (skipping)\n", block.Type)
+			fmt.Printf("Unsupported block type: %s (skipping)\n", block.Type)
 			continue
 		}
 
 		// Ekstrak teks dari textObjects
 		for _, obj := range textObjects {
 			if obj.Text != nil {
-				fmt.Printf("📝 Text content: %q\n", obj.Text.Content)
 				content.WriteString(obj.Text.Content)
 			}
 		}
@@ -274,8 +256,6 @@ func (s *SyncService) getPageContent(pageID string) (string, error) {
 	}
 
 	finalContent := strings.TrimSpace(content.String())
-	fmt.Printf("🔍 Final extracted content (%d chars): %q\n", len(finalContent), finalContent)
-
 	return finalContent, nil
 }
 
@@ -323,12 +303,9 @@ func (s *SyncService) shouldUpdateLocal(page Page, entryState state.EntryState) 
 }
 
 func (s *SyncService) updateLocalEntry(journal *parser.Journal, date, content string, page Page, state *state.State) error {
-	fmt.Printf("📝 Updating local entry %s with content length: %d\n", date, len(content))
-
 	found := false
 	for i, entry := range journal.Entries {
 		if entry.Date == date {
-			fmt.Printf("📝 Found existing entry %s, updating content\n", date)
 			journal.Entries[i].Body = content
 			found = true
 			break
@@ -336,7 +313,6 @@ func (s *SyncService) updateLocalEntry(journal *parser.Journal, date, content st
 	}
 
 	if !found {
-		fmt.Printf("📝 Adding new entry %s\n", date)
 		newEntry := parser.Entry{
 			Date: date,
 			Body: content,

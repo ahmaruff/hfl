@@ -8,7 +8,7 @@ import (
 
 var RootCmd = &cobra.Command{
 	Use:     "hfl",
-	Version: "0.3.0",
+	Version: "0.3.1",
 	Short:   "Homework for Life - A simple journaling tool",
 	Long:    "HFL manages your daily journal in a single markdown file with optional Notion sync.",
 }

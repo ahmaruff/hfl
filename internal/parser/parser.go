@@ -25,6 +25,8 @@ func ParseFile(filename string) (*Journal, []string, error) {
 
 	var currentEntry *Entry
 	var bodyLines []string
+	var headerLines []string
+	foundFirstEntry := false
 
 	scanner := bufio.NewScanner(file)
 
@@ -34,6 +36,19 @@ func ParseFile(filename string) (*Journal, []string, error) {
 		line := scanner.Text()
 
 		if matches := headingRegex.FindStringSubmatch(line); matches != nil {
+			if !foundFirstEntry {
+				foundFirstEntry = true
+
+				if len(headerLines) > 0 {
+					for len(headerLines) > 0 && strings.TrimSpace(headerLines[len(headerLines)-1]) == "" {
+						headerLines = headerLines[:len(headerLines)-1]
+					}
+					if len(headerLines) > 0 {
+						journal.Header = strings.Join(headerLines, "\n") + "\n"
+					}
+				}
+			}
+
 			date := matches[1] + "-" + matches[2] + "-" + matches[3] // Extract YYYY-MM-DD
 
 			// Validate month and day
@@ -74,7 +89,9 @@ func ParseFile(filename string) (*Journal, []string, error) {
 			bodyLines = []string{}
 
 		} else {
-			if currentEntry != nil {
+			if !foundFirstEntry {
+				headerLines = append(headerLines, line)
+			} else if currentEntry != nil {
 				bodyLines = append(bodyLines, line)
 			} else {
 				warnings = append(warnings, fmt.Sprintf("WARN text before first heading at line %d", lineNum))

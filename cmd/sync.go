@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/ahmaruff/hfl/internal/config"
+	"github.com/ahmaruff/hfl/internal/gitignore"
 	"github.com/ahmaruff/hfl/internal/notion"
 	"github.com/ahmaruff/hfl/internal/parser"
 	"github.com/ahmaruff/hfl/internal/state"
@@ -42,6 +43,11 @@ func runSync(cmd *cobra.Command, args []string) {
 		fmt.Fprintf(os.Stderr, "Error: Notion database ID not configured\n")
 		fmt.Fprintf(os.Stderr, "Set it with: hfl config set notion.database_id \"your-db-id\"\n")
 		os.Exit(1)
+	}
+
+	// Ensure .hfl/ is gitignored (before creating any .hfl files)
+	if err := gitignore.EnsureHFLIgnored(); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: could not update .gitignore: %v\n", err)
 	}
 
 	journal, warnings, err := parser.ParseFile("hfl.md")

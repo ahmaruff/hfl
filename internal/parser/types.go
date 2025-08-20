@@ -6,5 +6,6 @@ type Entry struct {
 }
 
 type Journal struct {
+	Header  string
 	Entries []Entry
 }

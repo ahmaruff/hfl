@@ -17,6 +17,15 @@ func WriteFile(filename string, journal *parser.Journal) error {
 	})
 
 	var journalStr string
+
+	// Add header if it exists
+	if journal.Header != "" {
+		journalStr += journal.Header
+		if len(entries) > 0 {
+			journalStr += "\n"
+		}
+	}
+
 	for i, entry := range entries {
 		journalStr += "# " + entry.Date + "\n"
 		journalStr += entry.Body

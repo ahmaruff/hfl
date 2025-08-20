@@ -113,3 +113,8 @@ tramp
 
 # Linux
 *~
+
+
+# HFL Export
+hfl.json
+hfl.csv

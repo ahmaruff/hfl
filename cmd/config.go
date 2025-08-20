@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/ahmaruff/hfl/internal/config"
+	"github.com/ahmaruff/hfl/internal/gitignore"
 	"github.com/spf13/cobra"
 )
 
@@ -44,6 +45,11 @@ var globalFlag bool
 func runConfigSet(cmd *cobra.Command, args []string) {
 	key := args[0]
 	value := args[1]
+
+	// Ensure .hfl/ is gitignored (before creating any .hfl files)
+	if err := gitignore.EnsureHFLIgnored(); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: could not update .gitignore: %v\n", err)
+	}
 
 	// Determine which config file to load/modify
 	var configPath string

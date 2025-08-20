@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/ahmaruff/hfl/internal/config"
+	"github.com/ahmaruff/hfl/internal/gitignore"
 	"github.com/ahmaruff/hfl/internal/parser"
 	"github.com/ahmaruff/hfl/internal/state"
 	"github.com/ahmaruff/hfl/internal/writer"
@@ -37,6 +38,11 @@ func runEdit(cmd *cobra.Command, args []string) {
 		date = parsedDate
 	} else {
 		date = time.Now().Format("2006-01-02") // Today
+	}
+
+	// Ensure .hfl/ is gitignored (before creating any .hfl files)
+	if err := gitignore.EnsureHFLIgnored(); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: could not update .gitignore: %v\n", err)
 	}
 
 	// Ensure hfl.md exists and has the entry

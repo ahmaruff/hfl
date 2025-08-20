@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/ahmaruff/hfl/internal/gitignore"
 	"github.com/ahmaruff/hfl/internal/parser"
 	"github.com/spf13/cobra"
 	"os"
@@ -15,6 +16,12 @@ var checkCmd = &cobra.Command{
 }
 
 func runCheck(cmd *cobra.Command, args []string) {
+
+	// Ensure .hfl/ is gitignored (before creating any .hfl files)
+	if err := gitignore.EnsureHFLIgnored(); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: could not update .gitignore: %v\n", err)
+	}
+
 	_, warnings, err := parser.ParseFile("hfl.md")
 
 	if err != nil {

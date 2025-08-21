@@ -1,15 +1,30 @@
-# HFL (Homework-for-Life)
+# ✍️ HFL (Homework-for-Life)
 
-**A simple, powerful journaling tool that keeps your thoughts in sync.**
+> **Homework for Life**  
+> *“What was the most story-worthy moment from my day?”*  
+>
+> Not the biggest, not the most dramatic — just the one moment  
+> that made today different from every other day.  
+> If I had to tell one short story from today, which one would I choose?  
 
-Write in your favorite editor, sync to Notion, access anywhere. One file, infinite possibilities.
+---
+
+## What is HFL?
+
+HFL is a **minimal, powerful journaling tool** designed to capture your daily moments with clarity.  
+It keeps your entire journal in a single, human-readable Markdown file — no clutter, no noise.  
+
+- 📝 **Write** in your favorite editor  
+- 🔄 **Sync** seamlessly with Notion  
+- 🌍 **Access** anywhere, anytime  
+
+**One file. Infinite stories. A lifetime of reflection.**
 
 ## Why HFL?
 
 🎯 **One file, everywhere** - Your entire journal in a single `hfl.md` file  
 📝 **Write your way** - Use any editor you love (VS Code, Vim, Nano, or Notion)  
 🔄 **Always in sync** - Seamless two-way sync with Notion  
-📱 **Access anywhere** - Edit on desktop, phone, or web  
 🚀 **Future-proof** - Plain Markdown that works with any tool  
 
 ## Quick Start

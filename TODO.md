@@ -6,4 +6,5 @@
 - [ ] sync pull semua block jd text biasa. harusnya mapping sesuai formatnya (heading, link, etc)
 - [ ] handle lebih banyak markdown format & notion block
 - [ ] refactor markdown to notion block parser (and vice viersa)
+- [ ] auto create judul page di notion. pake XX character pertama dari entry
 
